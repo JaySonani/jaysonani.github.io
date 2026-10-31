@@ -97,7 +97,7 @@ for b in bullets(S["Skills"]):
 
 # Credentials for JSON-LD (only what's visible on this page)
 creds = [
-    ("NVIDIA-Certified Associate: Generative AI LLMs", "certification", "NVIDIA", "2025-03", "2027-03", "https://www.credly.com/badges/b9ff3f76-fe93-49a3-a217-92f1048587bf/public_url"),
+    ("NVIDIA-Certified Associate: Generative AI LLMs", "certification", "NVIDIA", "2025-03", "2027-03", "https://credential.nvidia.com/346c4d82-30a9-4ee1-a24e-c96c78ee842a"),
     ("Generative AI Fundamentals", "certification", "Databricks", "2025-01", "2027-01", "https://credentials.databricks.com/46f694fa-ee6f-404a-85fb-4f6fa73ed99a"),
     ("Claude Code in Action", "certificate", "Anthropic", "2025-07", None, "https://github.com/JaySonani/Certifications/blob/master/Claude%20Code%20in%20Action.pdf"),
     ("Introduction to Model Context Protocol", "certificate", "Anthropic", "2025-07", None, "https://github.com/JaySonani/Certifications/blob/master/Intro%20to%20Model%20Context%20Protocol.pdf"),

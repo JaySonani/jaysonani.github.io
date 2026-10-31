@@ -20,7 +20,7 @@ Highlights:
 
 Core skills: AI agents, conversational AI, voice AI, LLM integration, prompt engineering, tool-calling, RAG pipelines, Model Context Protocol (MCP), Claude Code, Agent Skills, ASR, TTS, SIP trunking, Twilio, Python, TypeScript, Golang, Node.js, React, Next.js, FastAPI, AWS, GCP, Docker, Kubernetes, Datadog, PostgreSQL.
 
-Certifications: NVIDIA-Certified Associate: Generative AI LLMs (Mar 2025); Generative AI Fundamentals, Databricks (Jan 2025); Claude Code in Action, Introduction to Model Context Protocol, and Introduction to Agent Skills, Anthropic (Jul 2025).
+Certifications: NVIDIA-Certified Associate: Generative AI LLMs (Mar 2025, https://credential.nvidia.com/346c4d82-30a9-4ee1-a24e-c96c78ee842a); Generative AI Fundamentals, Databricks (Jan 2025); Claude Code in Action, Introduction to Model Context Protocol, and Introduction to Agent Skills, Anthropic (Jul 2025).
 
 ## Profile
 

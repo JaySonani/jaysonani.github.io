@@ -92,7 +92,7 @@ I'm Jay Sonani, a Forward Deployed Engineer at PolyAI based in Toronto, Canada. 
 
 ## Certifications
 
-- NVIDIA-Certified Associate: Generative AI LLMs, NVIDIA (Mar 2025, valid until Mar 2027): https://www.credly.com/badges/b9ff3f76-fe93-49a3-a217-92f1048587bf/public_url
+- NVIDIA-Certified Associate: Generative AI LLMs, NVIDIA (Mar 2025, valid until Mar 2027): https://credential.nvidia.com/346c4d82-30a9-4ee1-a24e-c96c78ee842a
 - Generative AI Fundamentals, Databricks (Jan 2025, valid until Jan 2027): https://credentials.databricks.com/46f694fa-ee6f-404a-85fb-4f6fa73ed99a
 - Claude Code in Action, Anthropic (Jul 2025): https://github.com/JaySonani/Certifications/blob/master/Claude%20Code%20in%20Action.pdf
 - Introduction to Model Context Protocol, Anthropic (Jul 2025): https://github.com/JaySonani/Certifications/blob/master/Intro%20to%20Model%20Context%20Protocol.pdf
