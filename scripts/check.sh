@@ -97,7 +97,7 @@ print("Key facts")
 # Facts every page and both text files must state.
 facts = ["Jay Sonani", "Forward Deployed Engineer", "AI Software Engineer", "Toronto, Canada", "PolyAI",
          "Replicant", "Pelmorex", "Tulip Retail", "TCS", "6+ years", "jaysonani1998@gmail.com",
-         "+1 (902) 412-8901", "https://www.linkedin.com/in/jaysonani/", "https://github.com/JaySonani"]
+         "https://www.linkedin.com/in/jaysonani/", "https://github.com/JaySonani"]
 texts = {p: visible[p] + " " + html[p] for p in PAGES} | {"resume.md": resume, "llms.txt": llms}
 for f in facts:
     where = [n for n, t in texts.items() if f not in t]
@@ -107,7 +107,12 @@ ok(f"{len(facts)} key facts in {', '.join(texts)}")
 for n, t in texts.items():
     if n != "index.html" and "Dalhousie University" not in t: fail(f"'Dalhousie University' missing from {n}")
 if ">Dal</a>" not in html["index.html"]: fail("index.html: expected the 'Dal' link")
-ok("school named in full on resume page and text files, 'Dal' on home")
+# Phone: on the resume page and text files, not on the home page (Jay's choice).
+for n, t in texts.items():
+    has = "+1 (902) 412-8901" in t
+    if n == "index.html" and has: fail("index.html: phone number should not be on the home page")
+    if n != "index.html" and not has: fail(f"phone number missing from {n}")
+ok("home page says 'Dal' and has no phone; resume page and text files have both in full")
 # Headline metrics: the home page is one short screen, so they live in the resume page and text files.
 metrics = ["500K+ calls/month", "70%+ containment rate", "10+ enterprise clients",
            "15% lower word error rate", "40% fewer false interruptions", "300ms"]
