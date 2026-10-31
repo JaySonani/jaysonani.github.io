@@ -1,0 +1,42 @@
+# Jay Sonani
+
+> Jay Sonani is a Forward Deployed Engineer based in Toronto, Canada, who builds and deploys LLM-powered voice AI agents for enterprise customers at PolyAI. 6+ years of experience across full-stack and AI engineering. Canadian Permanent Resident.
+
+Key facts:
+- Current role: Forward Deployed Engineer, PolyAI (Oct 2025 – Present)
+- Previous: AI Software Engineer, Replicant (Apr 2024 – Feb 2025); Full Stack Developer, Pelmorex Corp (The Weather Network) (Apr 2023 – Apr 2024); Software Developer (Co-op), Tulip Retail (Sep 2022 – Dec 2022); Software Developer, Tata Consultancy Services (TCS) (Aug 2020 – Jul 2021)
+- Location: Toronto, Canada
+- Work authorization: Canadian Permanent Resident (authorized to work for any employer in Canada; no sponsorship needed)
+- Contact: jaysonani1998@gmail.com · +1 (902) 412-8901 · https://www.linkedin.com/in/jaysonani/
+- Education: Master of Applied Computer Science (M.A.C.S.), Dalhousie University (2022); B.E. Computer Engineering, Gujarat Technological University (2020)
+
+Highlights:
+- 500K+ calls/month handled by voice AI agents at a 70%+ containment rate, cutting escalations to human agents by 30% (PolyAI)
+- 10+ enterprise clients taken through development, deployment, and hypercare (PolyAI)
+- 15% lower word error rate from ASR (NVIDIA) and TTS (ElevenLabs) tuning (PolyAI)
+- 40% fewer false interruptions from VAD and barge-in handling (PolyAI)
+- 300ms lower perceived end-to-end latency from audio caching, guardrails, and runtime optimizations (PolyAI)
+- RAG pipeline connecting a knowledge base to voice AI agents for customer FAQs (Replicant)
+
+Core skills: AI agents, conversational AI, voice AI, LLM integration, prompt engineering, tool-calling, RAG pipelines, Model Context Protocol (MCP), Claude Code, Agent Skills, ASR, TTS, SIP trunking, Twilio, Python, TypeScript, Golang, Node.js, React, Next.js, FastAPI, AWS, GCP, Docker, Kubernetes, Datadog, PostgreSQL.
+
+Certifications: NVIDIA-Certified Associate: Generative AI LLMs (Mar 2025); Generative AI Fundamentals, Databricks (Jan 2025); Claude Code in Action, Introduction to Model Context Protocol, and Introduction to Agent Skills, Anthropic (Jul 2025).
+
+## Profile
+
+- [Resume (Markdown)](https://jaysonani.github.io/resume.md): Full work history, skills, projects, certifications, education
+- [Resume (PDF)](https://jaysonani.github.io/assets/Jay-Sonani-Resume.pdf): Two-page resume
+- [Website](https://jaysonani.github.io/): Human-readable profile
+- [LinkedIn](https://www.linkedin.com/in/jaysonani/): Professional profile
+- [GitHub](https://github.com/JaySonani): Code and projects
+
+## Contact
+
+- [Email](mailto:jaysonani1998@gmail.com): jaysonani1998@gmail.com
+- [Phone](tel:+19024128901): +1 (902) 412-8901
+
+## Optional
+
+- [LLM Voice API](https://github.com/JaySonani/LLM-Voice-API): LLM-powered API that generates a brand voice profile and evaluates how any text sounds against it (FastAPI, Python)
+- [Magical AI Agent](https://github.com/JaySonani/Magical-AI-Agent): TypeScript, Vercel AI SDK, Playwright
+- [Reverse Proxy Server](https://github.com/JaySonani/http-reverse-proxy): HTTP reverse proxy server in Golang with Redis caching
