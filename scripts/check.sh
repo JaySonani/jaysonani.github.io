@@ -97,13 +97,17 @@ print("Key facts")
 # Facts every page and both text files must state.
 facts = ["Jay Sonani", "Forward Deployed Engineer", "AI Software Engineer", "Toronto, Canada", "PolyAI",
          "Replicant", "Pelmorex", "Tulip Retail", "TCS", "6+ years", "jaysonani1998@gmail.com",
-         "+1 (902) 412-8901", "https://www.linkedin.com/in/jaysonani/", "https://github.com/JaySonani",
-         "Dalhousie University"]
+         "+1 (902) 412-8901", "https://www.linkedin.com/in/jaysonani/", "https://github.com/JaySonani"]
 texts = {p: visible[p] + " " + html[p] for p in PAGES} | {"resume.md": resume, "llms.txt": llms}
 for f in facts:
     where = [n for n, t in texts.items() if f not in t]
     if where: fail(f"fact {f!r} missing from: {', '.join(where)}")
 ok(f"{len(facts)} key facts in {', '.join(texts)}")
+# The home page says "Dal" (Jay's choice); the full name stays everywhere else.
+for n, t in texts.items():
+    if n != "index.html" and "Dalhousie University" not in t: fail(f"'Dalhousie University' missing from {n}")
+if ">Dal</a>" not in html["index.html"]: fail("index.html: expected the 'Dal' link")
+ok("school named in full on resume page and text files, 'Dal' on home")
 # Headline metrics: the home page is one short screen, so they live in the resume page and text files.
 metrics = ["500K+ calls/month", "70%+ containment rate", "10+ enterprise clients",
            "15% lower word error rate", "40% fewer false interruptions", "300ms"]
