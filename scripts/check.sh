@@ -6,9 +6,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 exec python3 -I - <<'PY'
-import html, json, os, re, subprocess, sys
+import json, os, re, subprocess, sys
 from datetime import date
 from html.parser import HTMLParser
+
+SITE = "https://jaysonani.github.io/"
+PAGES = ["index.html", "resume/index.html"]  # every indexable HTML page
 
 failures = []
 def fail(msg): failures.append(msg)
@@ -23,85 +26,92 @@ def read(p):
     with open(p, encoding="utf-8") as f:
         return f.read()
 
-index = read("index.html")
-resume = read("resume.md")
-llms = read("llms.txt")
-
-# Visible text of index.html: drop <head>, <script>, <style>, then tags.
 class Visible(HTMLParser):
+    """Text a reader sees: drops <head>, <script>, <style>."""
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.skip = 0
-        self.parts = []
+        self.skip, self.parts = 0, []
     def handle_starttag(self, tag, attrs):
         if tag in ("head", "script", "style"): self.skip += 1
     def handle_endtag(self, tag):
         if tag in ("head", "script", "style"): self.skip -= 1
     def handle_data(self, data):
         if not self.skip: self.parts.append(data)
-v = Visible(); v.feed(index)
-visible = re.sub(r"\s+", " ", " ".join(v.parts))
-visible_lc = visible.lower()
 
-print("JSON-LD")
-blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', index, re.S)
-if len(blocks) != 1:
-    fail(f"expected exactly 1 JSON-LD block, found {len(blocks)}")
+def visible_text(src):
+    v = Visible(); v.feed(src)
+    return re.sub(r"\s+", " ", " ".join(v.parts))
+
+html = {p: read(p) for p in PAGES}
+visible = {p: visible_text(src) for p, src in html.items()}
+resume, llms = read("resume.md"), read("llms.txt")
+lastmods = re.findall(r"<lastmod>(.*?)</lastmod>", read("sitemap.xml"))
+
+for page in PAGES:
+    src, vis = html[page], visible[page]
+    vis_lc = vis.lower()
+    print(f"{page}: head and JSON-LD")
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', src, re.S)
     graph = {}
-else:
-    try:
-        graph = json.loads(blocks[0])
-        ok("JSON-LD parses")
-    except json.JSONDecodeError as e:
-        fail(f"JSON-LD does not parse: {e}"); graph = {}
-nodes = {n.get("@type"): n for n in graph.get("@graph", [])}
-person = nodes.get("Person", {})
-for t in ("Person", "ProfilePage", "WebSite"):
-    if t not in nodes: fail(f"JSON-LD missing @type {t}")
-if person:
+    if len(blocks) != 1:
+        fail(f"{page}: expected exactly 1 JSON-LD block, found {len(blocks)}")
+    else:
+        try: graph = json.loads(blocks[0])
+        except json.JSONDecodeError as e: fail(f"{page}: JSON-LD does not parse: {e}")
+    ok("JSON-LD parses")
+    nodes = {n.get("@type"): n for n in graph.get("@graph", [])}
+    person = nodes.get("Person", {})
+    if not person: fail(f"{page}: JSON-LD has no Person")
+    if person.get("@id") != SITE + "#person": fail(f"{page}: Person @id must be {SITE}#person")
     # "description" is a third-person paraphrase of the first-person page text, so it's not matched verbatim.
-    must_be_visible = [person["name"], person["jobTitle"],
-                       person["worksFor"]["name"], person["email"].removeprefix("mailto:")]
-    must_be_visible += person.get("knowsAbout", [])
-    must_be_visible += person.get("knowsLanguage", [])
-    must_be_visible += person.get("award", [])
-    must_be_visible += [c["name"] for c in person.get("hasCredential", [])]
-    must_be_visible += [a["name"] for a in person.get("alumniOf", [])]
-    missing = [s for s in must_be_visible if s.lower() not in visible_lc]
-    if missing: fail(f"JSON-LD values not visible on index.html: {missing}")
-    else: ok(f"all {len(must_be_visible)} JSON-LD values are visible on the page")
-    tel_digits = re.sub(r"\D", "", person.get("telephone", ""))
-    if tel_digits and tel_digits not in re.sub(r"\D", "", visible):
-        fail("JSON-LD telephone not visible on the page")
+    must = [person.get("name", ""), person.get("jobTitle", ""), person.get("worksFor", {}).get("name", ""),
+            person.get("email", "").removeprefix("mailto:")]
+    must += person.get("knowsAbout", []) + person.get("knowsLanguage", []) + person.get("award", [])
+    must += [c["name"] for c in person.get("hasCredential", [])]
+    must += [a["name"] for a in person.get("alumniOf", [])]
+    missing = [s for s in must if s.lower() not in vis_lc]
+    if missing: fail(f"{page}: JSON-LD values not visible on the page: {missing}")
+    ok(f"all {len(must)} JSON-LD values are visible on the page")
+    tel = re.sub(r"\D", "", person.get("telephone", ""))
+    if tel and tel not in re.sub(r"\D", "", vis): fail(f"{page}: JSON-LD telephone not visible")
     for s in person.get("sameAs", []):
-        if f'href="{s}" rel="me"' not in index:
-            fail(f'sameAs {s} has no visible <a rel="me"> link')
-    dm = nodes.get("ProfilePage", {}).get("dateModified", "")
-    lastmods = re.findall(r"<lastmod>(.*?)</lastmod>", read("sitemap.xml"))
-    if dm not in lastmods:
-        fail(f"JSON-LD dateModified ({dm}) does not match any sitemap <lastmod>")
-    else: ok(f"dateModified {dm} matches the sitemap")
+        if f'href="{s}" rel="me"' not in src: fail(f'{page}: sameAs {s} has no visible <a rel="me"> link')
+    page_node = nodes.get("ProfilePage") or nodes.get("WebPage") or {}
+    if page_node.get("dateModified") not in lastmods:
+        fail(f"{page}: dateModified {page_node.get('dateModified')!r} matches no sitemap <lastmod>")
+    ok("telephone, rel=me links, and dateModified")
+    canon = re.search(r'<link rel="canonical" href="([^"]+)"', src)
+    want = SITE + page.removesuffix("index.html")
+    if not canon or canon.group(1) != want: fail(f"{page}: canonical should be {want}")
+    if want not in read("sitemap.xml"): fail(f"{page}: {want} missing from sitemap.xml")
+    desc = re.search(r'<meta name="description" content="([^"]*)"', src)
+    if not desc or len(desc.group(1)) > 160: fail(f"{page}: meta description missing or over 160 chars")
+    title = re.search(r"<title>(.*?)</title>", src).group(1)
+    if "Jay Sonani" not in title: fail(f"{page}: <title> must contain the name")
+    if src.count("<h1") != 1: fail(f"{page}: must have exactly one <h1>")
+    for tag in ('og:title', 'og:description', 'og:url', 'og:image'):
+        if f'property="{tag}"' not in src: fail(f"{page}: missing {tag}")
+    ok(f"canonical, sitemap entry, title, description ({len(desc.group(1)) if desc else 0} chars), one <h1>, Open Graph")
 
 print("Key facts")
-# The page is deliberately one short screen; these facts must be on it and in both text files.
-facts = [
-    "Jay Sonani", "Forward Deployed Engineer", "AI Software Engineer", "Toronto, Canada", "PolyAI",
-    "Replicant", "Pelmorex", "Tulip Retail", "TCS", "6+ years",
-    "jaysonani1998@gmail.com", "+1 (902) 412-8901", "https://www.linkedin.com/in/jaysonani/",
-    "https://github.com/JaySonani", "Dalhousie University",
-]
+# Facts every page and both text files must state.
+facts = ["Jay Sonani", "Forward Deployed Engineer", "AI Software Engineer", "Toronto, Canada", "PolyAI",
+         "Replicant", "Pelmorex", "Tulip Retail", "TCS", "6+ years", "jaysonani1998@gmail.com",
+         "+1 (902) 412-8901", "https://www.linkedin.com/in/jaysonani/", "https://github.com/JaySonani",
+         "Dalhousie University"]
+texts = {p: visible[p] + " " + html[p] for p in PAGES} | {"resume.md": resume, "llms.txt": llms}
 for f in facts:
-    where = [name for name, text in (("index.html", visible + " " + index), ("resume.md", resume), ("llms.txt", llms)) if f not in text]
+    where = [n for n, t in texts.items() if f not in t]
     if where: fail(f"fact {f!r} missing from: {', '.join(where)}")
-ok(f"{len(facts)} key facts in index.html, resume.md, and llms.txt")
-# Headline metrics live in the linked text files, not on the page.
+ok(f"{len(facts)} key facts in {', '.join(texts)}")
+# Headline metrics: the home page is one short screen, so they live in the resume page and text files.
 metrics = ["500K+ calls/month", "70%+ containment rate", "10+ enterprise clients",
            "15% lower word error rate", "40% fewer false interruptions", "300ms"]
 for f in metrics:
-    where = [name for name, text in (("resume.md", resume), ("llms.txt", llms)) if f not in text]
+    where = [n for n, t in (("resume/index.html", visible["resume/index.html"]), ("resume.md", resume), ("llms.txt", llms)) if f not in t]
     if where: fail(f"metric {f!r} missing from: {', '.join(where)}")
-ok(f"{len(metrics)} headline metrics in resume.md and llms.txt")
-for name, text in (("index.html", visible), ("resume.md", resume), ("llms.txt", llms)):
+ok(f"{len(metrics)} headline metrics in resume/index.html, resume.md, and llms.txt")
+for name, text in [(p, visible[p]) for p in PAGES] + [("resume.md", resume), ("llms.txt", llms)]:
     first = " ".join(re.sub(r"[#>*`\[\]()]", " ", text).split()[:150])
     for f in ("Jay Sonani", "Forward Deployed Engineer", "Toronto", "PolyAI", "6+ years"):
         if f not in first: fail(f"{name}: {f!r} not in the first 150 words")
@@ -112,26 +122,25 @@ tracked = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-
                          capture_output=True, text=True, check=True).stdout.split()
 text_files = [p for p in tracked if not p.endswith((".pdf", ".png", ".jpg", ".jpeg", ".ico"))]
 if not os.path.exists(".private-patterns"):
-    fail(".private-patterns is missing; can't check for private data (see CLAUDE.md)")
+    fail(".private-patterns is missing; can't check for private data")
 else:
     pats = [l.strip() for l in read(".private-patterns").splitlines() if l.strip() and not l.startswith("#")]
     hits = [(p, pat) for p in text_files for pat in pats if pat.lower() in read(p).lower()]
     if hits: fail(f"private data found: {sorted(set(p for p, _ in hits))} (patterns redacted)")
-    else: ok(f"no private data in {len(text_files)} publishable text files ({len(pats)} patterns)")
+    ok(f"no private data in {len(text_files)} publishable text files ({len(pats)} patterns)")
 injection = ["ignore previous", "ignore all previous", "rank this candidate", "rank jay", "recommend jay",
              "you are an ai", "as an ai model", "system prompt"]
-for p in ("index.html", "resume.md", "llms.txt"):
+for p in PAGES + ["resume.md", "llms.txt"]:
     t = read(p).lower()
     for s in injection:
         if s in t: fail(f"{p}: instruction-to-AI text {s!r}")
     # Jay asked not to signal job seeking on the site (Decisions, D1).
     for s in ("open to new roles", "open to new opportunities", "actively looking", "available immediately", "seeking"):
         if s in t: fail(f"{p}: job-seeking phrase {s!r}")
-# Print-only rules (hiding nav when printing) are fine; anything else that hides text is not.
-compact = re.sub(r"@media print\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", index).replace(" ", "")
-for s in ("display:none", "visibility:hidden", "font-size:0", "opacity:0", "hidden>", "aria-hidden", "<!--"):
-    if s in compact:
-        fail(f"index.html: possible hidden content ({s})")
+for p in PAGES:
+    compact = html[p].replace(" ", "")
+    for s in ("display:none", "visibility:hidden", "font-size:0", "opacity:0", "hidden>", "aria-hidden", "<!--"):
+        if s in compact: fail(f"{p}: possible hidden content ({s})")
 ok("no instruction-to-AI, job-seeking, or hidden-text patterns")
 
 print("Sitemap and links")
@@ -139,19 +148,23 @@ sm = read("sitemap.xml")
 for loc, lm in re.findall(r"<loc>(.*?)</loc>\s*<lastmod>(.*?)</lastmod>", sm):
     try: date.fromisoformat(lm)
     except ValueError: fail(f"sitemap: bad lastmod {lm!r} for {loc}")
-    path = loc.removeprefix("https://jaysonani.github.io/") or "index.html"
+    path = loc.removeprefix(SITE) or "index.html"
+    if path.endswith("/"): path += "index.html"
     if not os.path.exists(path): fail(f"sitemap: {loc} has no file {path}")
 if sm.count("<loc>") != sm.count("<lastmod>"): fail("sitemap: every <url> needs a <lastmod>")
-ok(f"{sm.count('<loc>')} sitemap URLs with valid lastmod dates")
-for page in ("index.html", "404.html"):
+ok(f"{sm.count('<loc>')} sitemap URLs with valid lastmod dates and existing files")
+for page in PAGES + ["404.html"]:
     for href in re.findall(r'(?:href|src)="(/[^"#]*)', read(page)):
         if href != "/" and not os.path.exists(href.lstrip("/")): fail(f"{page}: broken local link {href}")
-ok("local links resolve")
-desc = re.search(r'<meta name="description" content="([^"]*)"', index).group(1)
-if len(desc) > 160: fail(f"meta description is {len(desc)} chars (max 160)")
-ok(f"meta description is {len(desc)} chars")
-if index.count("<h1") != 1: fail("index.html must have exactly one <h1>")
-ok("one <h1>")
+for url in re.findall(r"\((https://jaysonani\.github\.io/[^)]*)\)", llms):
+    path = url.removeprefix(SITE) or "index.html"
+    if path.endswith("/"): path += "index.html"
+    if not os.path.exists(path): fail(f"llms.txt: {url} has no file")
+ok("local links in pages and llms.txt resolve")
+key_files = [f for f in os.listdir(".") if re.fullmatch(r"[0-9a-f]{32}\.txt", f)]
+for f in key_files:
+    if read(f).strip() != f.removesuffix(".txt"): fail(f"IndexNow key file {f} content doesn't match its name")
+ok(f"{len(key_files)} IndexNow key file(s) valid")
 
 print()
 if failures:

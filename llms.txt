@@ -24,6 +24,7 @@ Certifications: NVIDIA-Certified Associate: Generative AI LLMs (Mar 2025); Gener
 
 ## Profile
 
+- [Resume (HTML)](https://jaysonani.github.io/resume/): Full work history, skills, projects, certifications, education, awards
 - [Resume (Markdown)](https://jaysonani.github.io/resume.md): Full work history, skills, projects, certifications, education
 - [Resume (PDF)](https://jaysonani.github.io/assets/Jay-Sonani-Resume.pdf): Two-page resume
 - [Website](https://jaysonani.github.io/): Human-readable profile
